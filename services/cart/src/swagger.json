@@ -1,0 +1,152 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Cart API",
+    "description": "API for managing user carts"
+  },
+  "paths": {
+    "/cart": {
+      "post": {
+        "summary": "Add product to cart",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Product information",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AddProductToCart"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product added to cart"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get user carts",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "User information",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GetUserCarts"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User carts retrieved"
+          }
+        }
+      }
+    },
+    "/cart/{cartId}": {
+      "post": {
+        "summary": "Add product to specific cart",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "cartId",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Product information",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AddProductToCart"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product added to specific cart"
+          }
+        }
+      }
+    },
+    "/cart/{cartId}/product/{productId}": {
+      "delete": {
+        "summary": "Remove product from cart",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "cartId",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "productId",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "User information",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RemoveProductFromCart"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product removed from cart"
+          }
+        }
+      }
+    },
+    "/ping-user": {
+      "get": {
+        "summary": "Ping user service",
+        "responses": {
+          "200": {
+            "description": "Pinged user service"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "AddProductToCart": {
+      "type": "object",
+      "properties": {
+        "productId": {
+          "type": "string"
+        },
+        "authUserId": {
+          "type": "string"
+        },
+        "qty": {
+          "type": "integer"
+        }
+      }
+    },
+    "GetUserCarts": {
+      "type": "object",
+      "properties": {
+        "authUserId": {
+          "type": "string"
+        }
+      }
+    },
+    "RemoveProductFromCart": {
+      "type": "object",
+      "properties": {
+        "authUserId": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

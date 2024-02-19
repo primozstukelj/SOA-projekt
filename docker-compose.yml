@@ -1,0 +1,158 @@
+# Specify the version number
+version: '3'
+services:
+  cart-service:
+    # The database corresponds to the Dockerfile directory
+    build:
+      context: ./services/cart
+    # Restart method: always
+    restart: always
+    # Port Mapping
+    ports:
+      - 11234:11234
+    # container name
+    container_name: cart-service
+    # hostname
+    hostname: cart-service
+    # Environment variable, set the startup mode to stand-alone startup
+    environment:
+      PORT: 11234
+      PRODUCT_SERVICE_URL: 'http://product-service:11233'
+      USER_SERVICE_URL: 'http://user-service:11231'
+      DB: 'mongodb://cart-db:27017/'
+      NODE_ENV: 'production'
+      RABBITMQ_URL: 'amqp://student:student123@rabbit:5672'
+    # add to web app
+    networks:
+      - app
+    depends_on:
+      - cart-db
+  cart-db:
+    container_name: cart-db
+    hostname: cart-db
+    networks:
+      - app
+    image: mongo
+    expose:
+      - "27017"
+    volumes:
+      - ./services/cart/db:/data/db
+  log-service:
+    build:
+      context: ./services/log
+    restart: always
+    ports:
+      - 11235:11235
+    container_name: log-service
+    hostname: log-service
+    environment:
+      PORT: 11235
+      SECRET: 'secret'
+      PRODUCT_SERVICE_URL: 'http://product-service:11233'
+      STATS_URL: 'https://soa051323jdsf2.azurewebsites.net/posodobiPodatke'
+      DB: 'mongodb://log-db:27017/'
+      NODE_ENV: 'production'
+      RABBITMQ_URL: 'amqp://student:student123@rabbit:5672'
+    networks:
+      - app
+    depends_on:
+      - log-db
+  log-db:
+    container_name: log-db
+    hostname: log-db
+    networks:
+      - app
+    expose:
+      - "27017"
+    image: mongo
+    volumes:
+      - ./services/log/db:/data/db
+  product-service:
+    build:
+      context: ./services/product
+    restart: always
+    ports:
+      - 11233:11233
+    container_name: product-service
+    hostname: product-service
+    environment:
+      NODE_ENV: 'production'
+      RABBITMQ_URL: 'amqp://student:student123@rabbit:5672'
+      PORT: 11233
+      USER_SERVICE_URL: 'http://prodcut-service:11231'
+      DB: 'mongodb://product-db:27017/'
+      DB_LOG: 'mongodb://log-db:27017/'
+    networks:
+      - app
+    depends_on:
+      - product-db
+  product-db:
+    container_name: product-db
+    hostname: product-db
+    expose:
+      - "27017"
+    networks:
+      - app
+    image: mongo
+    volumes:
+      - ./services/product/db:/data/db
+  user-service:
+    build:
+      context: ./services/user
+    restart: always
+    ports:
+      - 11231:11231
+    container_name: user-service
+    hostname: user-service
+    environment:
+      NODE_ENV: 'production'
+      RABBITMQ_URL: 'amqp://student:student123@rabbit:5672'
+      PORT: 11231
+      SECRET: 'secret'
+      PRODUCT_SERVICE_URL: 'http://user-service:11233'
+      DB: 'mongodb://user-db:27017/'
+      DB_LOG: 'mongodb://log-db:27017/'
+    networks:
+      - app
+    depends_on:
+      - user-db
+  user-db:
+    container_name: user-db
+    hostname: user-db
+    expose:
+      - "27017"
+    networks:
+      - app
+    image: mongo
+    volumes:
+      - ./services/user/db:/data/db
+  api-gateway:
+    build:
+      context: ./api-gateway
+    restart: always
+    ports:
+      - 11230:11230
+    container_name: api-gateway
+    hostname: api-gateway
+    environment:
+      FLASK_RUN_PORT: 11230
+      MODE: standalone
+      CART_SERVICE_URL: 'http://cart-service:11234/'
+      LOG_SERVICE_URL: 'http://log-service:11235/'
+      PRODUCT_SERVICE_URL: 'http://product-service:11233/'
+      USER_SERVICE_URL: 'http://user-service:11231/'
+    networks:
+      - app
+
+# set network as app
+networks:
+  rabbit:
+    name: rabbit_network
+    external: true
+  app:
+
+volumes:
+  user-db-data:
+  product-db-data:
+  cart-db-data:
+  log-db-data:
