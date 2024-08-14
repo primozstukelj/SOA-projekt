@@ -6,9 +6,10 @@ import amqp from 'amqplib';
 
 
 // Async function to connect to RabbitMQ
-async function connectToRabbitMQ() {
+async function connectToRabbitMQ(): Promise<amqp.Channel | undefined>{
   // RabbitMQ connection settings
   const rabbitMQUrl = config.RABBITMQ_URL;
+  console.log('RabbitMQ URL:', rabbitMQUrl);
   const exchange = 'my_logging_exchange';
   try {
     const connection = await amqp.connect(rabbitMQUrl);
@@ -17,6 +18,7 @@ async function connectToRabbitMQ() {
         await channel.assertExchange(exchange, 'topic', {
           durable: true // Change to true if you want the exchange to survive broker restarts
         });
+        console.log('Connected to RabbitMQ');
         return channel;
     } catch (error) {
         console.error('Error connecting to RabbitMQ:', error);

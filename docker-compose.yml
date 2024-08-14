@@ -3,8 +3,7 @@ version: '3'
 services:
   cart-service:
     # The database corresponds to the Dockerfile directory
-    build:
-      context: ./services/cart
+    image: ferisoa/projekt:cart-service1
     # Restart method: always
     restart: always
     # Port Mapping
@@ -19,12 +18,15 @@ services:
       PORT: 11234
       PRODUCT_SERVICE_URL: 'http://product-service:11233'
       USER_SERVICE_URL: 'http://user-service:11231'
-      DB: 'mongodb://cart-db:27017/'
+      DB_PROD: 'mongodb://cart-db:27017/'
+      DB: 'mongodb+srv://test:dy2nSenFodHf5V3V@cluster0.kfl4t.mongodb.net/cart-service?retryWrites=true&w=majority'
       NODE_ENV: 'production'
+      RABBITMQ_URL_DEV: 'amqp://guest:guest@164.8.222.89:5672'
       RABBITMQ_URL: 'amqp://student:student123@rabbit:5672'
     # add to web app
     networks:
       - app
+      - rabbit
     depends_on:
       - cart-db
   cart-db:
@@ -32,14 +34,14 @@ services:
     hostname: cart-db
     networks:
       - app
+      - rabbit
     image: mongo
     expose:
       - "27017"
-    volumes:
-      - ./services/cart/db:/data/db
+#    volumes:
+#      - ./services/cart/db:/data/db
   log-service:
-    build:
-      context: ./services/log
+    image: ferisoa/projekt:log-service1
     restart: always
     ports:
       - 11235:11235
@@ -49,12 +51,15 @@ services:
       PORT: 11235
       SECRET: 'secret'
       PRODUCT_SERVICE_URL: 'http://product-service:11233'
-      STATS_URL: 'https://soa051323jdsf2.azurewebsites.net/posodobiPodatke'
-      DB: 'mongodb://log-db:27017/'
+      STATS_URL: 'https://soa051323jdsf2.azurewebsites.net/'
+      DB_PROD: 'mongodb://log-db:27017/'
+      DB: 'mongodb+srv://test:dy2nSenFodHf5V3V@cluster0.kfl4t.mongodb.net/log-service?retryWrites=true&w=majority'
       NODE_ENV: 'production'
+      RABBITMQ_URL_DEV: 'amqp://guest:guest@164.8.222.89:5672'
       RABBITMQ_URL: 'amqp://student:student123@rabbit:5672'
     networks:
       - app
+      - rabbit
     depends_on:
       - log-db
   log-db:
@@ -62,14 +67,14 @@ services:
     hostname: log-db
     networks:
       - app
+      - rabbit
     expose:
       - "27017"
     image: mongo
-    volumes:
-      - ./services/log/db:/data/db
+#    volumes:
+#      - ./services/log/db:/data/db
   product-service:
-    build:
-      context: ./services/product
+    image: ferisoa/projekt:product-service2
     restart: always
     ports:
       - 11233:11233
@@ -77,13 +82,16 @@ services:
     hostname: product-service
     environment:
       NODE_ENV: 'production'
+      RABBITMQ_URL_DEV: 'amqp://guest:guest@164.8.222.89:5672'
       RABBITMQ_URL: 'amqp://student:student123@rabbit:5672'
       PORT: 11233
-      USER_SERVICE_URL: 'http://prodcut-service:11231'
-      DB: 'mongodb://product-db:27017/'
+      USER_SERVICE_URL: 'http://user-service:11231'
+      DB_PROD: 'mongodb://product-db:27017/'
+      DB: 'mongodb+srv://test:dy2nSenFodHf5V3V@cluster0.kfl4t.mongodb.net/product-service?retryWrites=true&w=majority'
       DB_LOG: 'mongodb://log-db:27017/'
     networks:
       - app
+      - rabbit
     depends_on:
       - product-db
   product-db:
@@ -93,12 +101,12 @@ services:
       - "27017"
     networks:
       - app
+      - rabbit
     image: mongo
-    volumes:
-      - ./services/product/db:/data/db
+#    volumes:
+#      - ./services/product/db:/data/db
   user-service:
-    build:
-      context: ./services/user
+    image: ferisoa/projekt:user-service3
     restart: always
     ports:
       - 11231:11231
@@ -106,14 +114,16 @@ services:
     hostname: user-service
     environment:
       NODE_ENV: 'production'
+      RABBITMQ_URL_DEV: 'amqp://guest:guest@164.8.222.89:5672'
       RABBITMQ_URL: 'amqp://student:student123@rabbit:5672'
       PORT: 11231
       SECRET: 'secret'
       PRODUCT_SERVICE_URL: 'http://user-service:11233'
-      DB: 'mongodb://user-db:27017/'
-      DB_LOG: 'mongodb://log-db:27017/'
+      DB_PROD: 'mongodb://user-db:27017/'
+      DB: 'mongodb+srv://test:dy2nSenFodHf5V3V@cluster0.kfl4t.mongodb.net/user-service?retryWrites=true&w=majority'
     networks:
       - app
+      - rabbit
     depends_on:
       - user-db
   user-db:
@@ -123,12 +133,12 @@ services:
       - "27017"
     networks:
       - app
+      - rabbit
     image: mongo
-    volumes:
-      - ./services/user/db:/data/db
+#    volumes:
+#      - ./services/user/db:/data/db
   api-gateway:
-    build:
-      context: ./api-gateway
+    image: ferisoa/projekt:api-gateway-c
     restart: always
     ports:
       - 11230:11230
@@ -143,6 +153,25 @@ services:
       USER_SERVICE_URL: 'http://user-service:11231/'
     networks:
       - app
+      - rabbit
+  web-app:
+    image: ferisoa/projekt:web-app
+    restart: always
+    ports:
+      - 11237:11237
+    container_name: web-app
+    hostname: web-app
+    environment:
+      PORT: 11237
+      NODE_ENV: 'production'
+      CART_SERVICE_URL: 'http://studentdocker.informatika.uni-mb.si:11230/cart'
+      LOG_SERVICE_URL: 'http://studentdocker.informatika.uni-mb.si:11230/logs'
+      PRODUCT_SERVICE_URL: 'http://studentdocker.informatika.uni-mb.si:11230/product'
+      USER_SERVICE_URL: 'http://studentdocker.informatika.uni-mb.si:11230/user'
+      STATS_SERVICE_URL: 'http://soa051323jdsf2.azurewebsites.net/'
+    networks:
+      - app
+      - rabbit
 
 # set network as app
 networks:

@@ -14,7 +14,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 11230
 
 # Define environment variable
-# ENV NAME World
+ENV FLASK_RUN_PORT 11230
+ENV MODE standalone
+ENV CART_SERVICE_URL 'http://studentdocker.informatika.uni-mb.si:11234/'
+ENV LOG_SERVICE_URL 'http://studentdocker.informatika.uni-mb.si:11235/'
+ENV PRODUCT_SERVICE_URL 'http://studentdocker.informatika.uni-mb.si:11233/'
+ENV USER_SERVICE_URL 'http://studentdocker.informatika.uni-mb.si:11231/'
 
 # Run app.py when the container launches
 CMD ["python", "index.py"]

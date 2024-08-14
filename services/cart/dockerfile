@@ -18,6 +18,16 @@ COPY . .
 
 RUN npm run build
 
+ENV PORT=11234
+ENV PRODUCT_SERVICE_URL='http://studentdocker.informatika.uni-mb.si:11233/'
+ENV USER_SERVICE_URL='http://studentdocker.informatika.uni-mb.si:11231/'
+ENV DB_PROD='mongodb://cart-db:27017/'
+ENV DB='mongodb+srv://test:dy2nSenFodHf5V3V@cluster0.kfl4t.mongodb.net/cart-service?retryWrites=true&w=majority'
+ENV NODE_ENV='production'
+ENV RABBITMQ_URL_DEV='amqp://guest:guest@164.8.222.89:5672'
+ENV RABBITMQ_URL='amqp://student:student123@rabbit:5672'
+
+
 EXPOSE 11234
 
 # Run the web service on container startup.

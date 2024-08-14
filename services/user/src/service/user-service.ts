@@ -1,7 +1,6 @@
 import User, { IUser } from "../database/models/User";
 import UserRepository from "../database/repository/user-repository";
 import HttpException, { HttpCode } from "../exceptions/HttpException";
-import { PublishProductEvent } from "../util";
 import config from "../config";
 import ms from "ms";
 import jwt from "jsonwebtoken";
@@ -40,7 +39,7 @@ class UserService {
     if (!existingUser.isPasswordValid(payload.password)) {
       throw new HttpException(HttpCode.BAD_REQUEST, "Invalid password.");
     }
-
+    console.log("login config.SECRET", config.SECRET);
     // generate JWT token and save it to db
     const jwtToken = jwt.sign(
       {
@@ -65,6 +64,7 @@ class UserService {
   };
 
   AuthUser = async (token: string): Promise<string> => {
+    console.log("auth config.SECRET", config.SECRET);
     const decodedToken = jwt.verify(
       token,
       config.SECRET ?? "super-secret",
@@ -124,36 +124,6 @@ class UserService {
       throw new HttpException(HttpCode.NOT_FOUND, "User not found");
     }
     await user.deleteOne();
-  };
-
-  ReceivePing = async (data: any) => {
-    console.log("Your service just got pinged:");
-    console.log(data);
-  };
-
-  PingProductService = async () => {
-    const payload = {
-      event: "PING",
-      data: { msg: "Hello from user service" },
-    };
-    PublishProductEvent(payload);
-  };
-
-  SubcribeEvents = async (payload: { event: string; data: any }) => {
-    if (!payload || !payload.event || !payload.data) {
-      console.log("Could not subscribe an event due to invalid payload");
-      return;
-    }
-    const { event, data } = payload;
-
-    //Do some event related things
-    switch (event) {
-      case "PING":
-        this.ReceivePing(data);
-        break;
-      default:
-        break;
-    }
   };
 }
 

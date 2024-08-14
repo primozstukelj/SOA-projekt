@@ -14,18 +14,20 @@ import config from "./config";
 import { Channel } from "amqplib";
 import HttpException from "./exceptions/HttpException";
 
-const ExpressLogic = async (app: Express, channel: Channel) => {
+const ExpressLogic = async (app: Express, channel: Channel | undefined) => {
   app.use(express.json({ limit: "1mb" }));
   app.use(cors());
   app.use(correlationIDMiddleware);
 
   app.use((req: Request, res: Response, next: NextFunction) => {
-    // const formatDate = (date: Date) => `${date.getFullYear()}-${date.getMonth()}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
-    const message = `${new Date().toISOString()} [CARTSERVICE] INFO ${req.method} ${req.url} Correlation: ${req.headers["x-correlation-id"] || "no-colleration-id"} - Endpoint called`;
-    const exchange = 'my_logging_exchange';
-    const routingKey = 'cart-service';
-    channel.publish(exchange, routingKey, Buffer.from(message));
-    // console.log(`Message published to exchange "${exchange}" with routing key "${routingKey}"`);
+    if(channel) {
+      // const formatDate = (date: Date) => `${date.getFullYear()}-${date.getMonth()}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+      const message = `${new Date().toISOString()} [CARTSERVICE] INFO ${req.method} ${req.url} Correlation: ${req.headers["x-correlation-id"] || "no-colleration-id"} - Endpoint called`;
+      const exchange = 'my_logging_exchange';
+      const routingKey = 'cart-service';
+      channel.publish(exchange, routingKey, Buffer.from(message));
+      // console.log(`Message published to exchange "${exchange}" with routing key "${routingKey}"`);
+    }
     next();
   })
 
@@ -43,12 +45,13 @@ const ExpressLogic = async (app: Express, channel: Channel) => {
   app.use((  error: HttpException, req: Request, res: Response, next: NextFunction) => {
     let status = error.status || 500;
     let message = error.message || "Something went wrong";
-    // const formatDate = (date: Date) => `${date.getFullYear()}-${date.getMonth()}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
-    const logMessage = `${new Date().toISOString()} [CARTSERVICE] ${status >= 500 ? 'ERROR' : 'WARN'} ${req.method} ${req.url} Correlation: ${req.headers["x-correlation-id"] || "no-colleration-id"} - ${message} - ${status}`;
-    const exchange = 'my_logging_exchange';
-    const routingKey = 'cart-service';
-    channel.publish(exchange, routingKey, Buffer.from(logMessage));
-
+    if(channel) {
+      // const formatDate = (date: Date) => `${date.getFullYear()}-${date.getMonth()}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+      const logMessage = `${new Date().toISOString()} [CARTSERVICE] ${status >= 500 ? 'ERROR' : 'WARN'} ${req.method} ${req.url} Correlation: ${req.headers["x-correlation-id"] || "no-colleration-id"} - ${message} - ${status}`;
+      const exchange = 'my_logging_exchange';
+      const routingKey = 'cart-service';
+      channel.publish(exchange, routingKey, Buffer.from(logMessage));
+    }
     res.status(status).send({
       message,
       status,

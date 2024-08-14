@@ -5,7 +5,7 @@ import config from "./config";
 import amqp from 'amqplib';
 
 // Async function to connect to RabbitMQ
-async function connectToRabbitMQ() {
+async function connectToRabbitMQ(): Promise<amqp.Channel | undefined> {
   // RabbitMQ connection settings
   const rabbitMQUrl = config.RABBITMQ_URL;
   const exchange = 'my_logging_exchange';
